@@ -8,5 +8,5 @@ git clone https://github.com/amitgupta7/docker-jupy-ntbk-s3-reporting
 cd docker-jupy-ntbk-s3-reporting
 make
 make run
-## follow the instructions on prompt
+## follow the instructions on prompt to run the jupiter server on http://127.0.0.1:8888/lab
 ```
