@@ -1,0 +1,12 @@
+#docker-jupy-ntbk-s3-reporting
+## Provided as-is (w/o support)
+This is a docker container to run jupyter notebook for generating performance reports from s3. The AWS sso authentication is handled interactively upon running the container. 
+
+## Usage
+```shell
+git clone https://github.com/amitgupta7/docker-jupy-ntbk-s3-reporting
+cd docker-jupy-ntbk-s3-reporting
+make
+make run
+## follow the instructions on prompt
+```
