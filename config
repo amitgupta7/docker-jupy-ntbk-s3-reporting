@@ -1,0 +1,10 @@
+[profile default]
+sso_session = jupy-ntbk-session
+sso_account_id = 718391394098
+sso_role_name = ProdCXS3Access
+region = us-west-2
+output = json
+[sso-session jupy-ntbk-session]
+sso_start_url = https://securiti.awsapps.com/start/#
+sso_region = us-west-2
+sso_registration_scopes = sso:account:access
