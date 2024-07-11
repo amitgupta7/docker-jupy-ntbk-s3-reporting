@@ -24,3 +24,22 @@ make sync-s3
 # resyncing s3 ...
 # download: s3://....
 ```
+
+## Stop Jupyter server
+```shell
+make run
+
+##output
+# Alternatively, you may visit the following URL which will autofill the code upon loading:
+# https://device.sso.us-west-2.amazonaws.com/?user_code=SFCC-NRCC
+# Successfully logged into Start URL: https://securiti.awsapps.com/start/#
+# download: s3://...
+#    Jupyter Server 2.14.1 is running at:
+#     http://59c9b717a091:8888/lab?token=2da6189e776bc61c2674a14ef1f7fa56ef24a48d1269223c
+#         http://127.0.0.1:8888/lab?token=2da6189e776bc61c2674a14ef1f7fa56ef24a48d1269223c
+
+## Hit 'ctrl+c' and then 'y' to stop the server.
+# Shut down this Jupyter server (y/[n])? y
+
+## Pressing 'Ctrl-C' twice shuts down the Server and immediately destroys the Docker container. 
+```
