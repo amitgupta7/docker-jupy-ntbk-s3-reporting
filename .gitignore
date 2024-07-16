@@ -1,0 +1,5 @@
+.*
+*.ipynb
+my-venv/*
+*.tar.gz
+!.gitignore
