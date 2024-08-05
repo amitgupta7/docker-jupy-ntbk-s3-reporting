@@ -8,35 +8,24 @@ This is a docker container to run jupyter notebook for generating performance re
 
 ## Usage
 ```shell
-git clone https://github.com/amitgupta7/docker-jupy-ntbk-s3-reporting
-cd docker-jupy-ntbk-s3-reporting
-make
-make run
+git clone git@bitbucket.org:securitiai/team-cx-tools.git
+cd team-cx-tools/docker-jupy-ntbk-s3-reporting
+make build run-with-s3-sync
 ## follow the instructions on prompt to authenticate with aws sso and run the jupiter server on http://127.0.0.1:8888/lab
+## Jupiter server password is set to 'my-password'
 ```
-When the container is running, it can be accessed with the `docker exec` command. The `make sync-s3` command will run the s3 sync again to download any missing/new files from aws s3.
-
-```shell
-make run
-## when container is running, run make sync-s3 ...
-make sync-s3
-## Output
-# resyncing s3 ...
-# download: s3://....
-```
+If s3 sync is not required, use the `make run` command instead. 
 
 ## Stop Jupyter server
+Hit 'ctrl+c' and then 'y' to stop the server. Hit 'ctrl+c' twice shuts down the Server and immediately destroys the Docker container. 
 ```shell
-make run
-
 ##output
-# Alternatively, you may visit the following URL which will autofill the code upon loading:
-# https://device.sso.us-west-2.amazonaws.com/?user_code=SFCC-NRCC
-# Successfully logged into Start URL: https://securiti.awsapps.com/start/#
-# download: s3://...
-#    Jupyter Server 2.14.1 is running at:
-#     http://59c9b717a091:8888/lab?token=2da6189e776bc61c2674a14ef1f7fa56ef24a48d1269223c
-#         http://127.0.0.1:8888/lab?token=2da6189e776bc61c2674a14ef1f7fa56ef24a48d1269223c
+# Setting password for jupyter server to 'my-password'
+# .....
+# [I 2024-07-30 13:55:02.091 ServerApp] Jupyter Server 2.14.1 is running at:
+# [I 2024-07-30 13:55:02.091 ServerApp] http://3a971ca067c7:8888/lab
+# [I 2024-07-30 13:55:02.091 ServerApp]     http://127.0.0.1:8888/lab
+# [I 2024-07-30 13:55:02.091 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
 
 ## Hit 'ctrl+c' and then 'y' to stop the server.
 # Shut down this Jupyter server (y/[n])? y
