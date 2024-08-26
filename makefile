@@ -2,6 +2,11 @@ $(VERBOSE).SILENT:
 IMG=jupy-ntbk-s3-reporting
 VER=latest
 NAME=jupy-ntbk-s3
+usage:
+	echo "USAGE: See "
+	echo "make build				Run docker image build"
+	echo "make run-with-s3-sync			Authenticate/sync aws-s3 with web sso."
+	echo "make run				Run jupyter server without s3 sync."
 build: preflight
 	docker build -t ${IMG}:${VER} .
 run: preflight

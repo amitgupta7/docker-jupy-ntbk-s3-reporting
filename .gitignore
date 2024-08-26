@@ -1,5 +1,7 @@
 .*
-*.ipynb
 my-venv/*
 !.gitignore
 *.tar.*
+*.csv
+__pycache__/*.pyc
+*.json
