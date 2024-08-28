@@ -1,5 +1,6 @@
 ## Load Dataframe
 import pandas as pd
+import plotly.express as px
 import warnings
 import fnmatch
 import os
@@ -42,3 +43,45 @@ def loadDataFrameFromFileRegex(root, regex, **kwargs):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=FutureWarning)      
         return pd.concat(df_arr, ignore_index=True)
+    
+def plotMetricsFacetForApplianceId(df, appliance_id, fromDt, toDt, ttl):
+    dfp = df[(df['appliance_id'] == appliance_id) & (df['ts'] >= fromDt) & (df['ts'] <= toDt) ]
+    dfp = dfp.pivot(index=['appliance_id','ts'], columns=['node_ip', 'metrics'], values='value').reset_index()
+    dfp = dfp.drop('appliance_id', axis=1, level=0)
+    dfp = dfp.set_index(['ts'])
+    dfp = dfp.reindex(pd.date_range(dfp.index[0], dfp.index[-1], freq='h')).fillna(0)
+    dfp.reset_index(level=[])
+    dfp = pd.melt(dfp, ignore_index = False)
+    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScanned", "cpu_used_avg", "cpu_used_max", "scanTime","downloadq_max", "taskq_max", "download_workers_count_max", "memory_used_max"]}, markers=True, title=ttl)
+    fig = fig.update_yaxes(matches=None)
+    return fig
+
+def loadUnstrucDataFromFileRegex(root, regex):
+    print("loading Unstrctured Data from file: "+regex)
+    df9 = loadDataFrameFromFileRegex(root, regex, metrics='dataScanned')
+    df9.rename(columns={'pod':'appliance_id'}, inplace=True)
+    df9['node_ip']="master"
+    df9=df9.groupby(['appliance_id', 'ts', 'node_ip']).agg(\
+    dataScanned=('dataScannedInGB', 'sum'), \
+    scanTime=('processingTimeinHrs', 'sum'), \
+    numFilesScanned=('numberOfFilesScanned', 'sum'), \
+    scannerIdleTime=('IdleTimeInHrs', 'sum'), \
+    uniqPodCount=('uniqPodCount', 'max')).reset_index()
+    df9['ts']=pd.to_datetime(df9['ts'],unit='ms')
+    df9['avgFileSizeInMB']=df9['dataScanned']*1000/df9['numFilesScanned']
+    df9 = pd.melt(df9, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value')
+    return df9
+
+def loadPrometheusDataFromFileRegex(root, filePrefix, fileExtn):
+    metricsArr = ['cpu_used', 'download_workers_count', 'memory_used', 'task_queue_length', 'infra_access_latency', 'pod_cpu_usage', 'pod_memory_usage']
+    df_arr = []
+    for metricsName in metricsArr:
+        for fileAggFunc in ['max', 'avg']:
+            aggfunction = 'mean'
+            if(fileAggFunc == 'max'):
+                aggfunction = 'max'
+            df_tmp = loadPrometheusData(root, filePrefix, metricsName, fileAggFunc, fileExtn, aggfunction)
+            df_arr.append(df_tmp)
+
+    df = pd.concat(df_arr, ignore_index=True)
+    return df

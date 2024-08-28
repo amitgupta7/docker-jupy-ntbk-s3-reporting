@@ -5,3 +5,4 @@ my-venv/*
 *.csv
 __pycache__/*.pyc
 *.json
+appliancePlots/*.html
