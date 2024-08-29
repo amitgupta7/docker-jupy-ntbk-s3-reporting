@@ -14,7 +14,7 @@ def loadPrometheusData(root, fileRegex, metricsName, fileAggFunc, fileExtn, aggf
     df1 = loadDataFrameFromFileRegex(root, fileRegex+metricsName+'-'+fileAggFunc+'*'+fileExtn, metrics=metricsName+'_'+fileAggFunc)
     if(metricsName == 'task_queue_length'):
         df1.loc[df1['metrics_name'].str.contains('securiti-appliance-downloader-tasks-queue', regex=False), 'metrics'] = 'taskq_'+fileAggFunc
-        df1.loc[df1['metrics_name'].str.contains('t-appliance-downloader-tasks-queue', regex=False), 'metrics'] = 'downloadq_'+fileAggFunc
+        df1.loc[df1['metrics_name'].str.contains('t-appliance-downloader-tasks-queue', regex=False), 'metrics'] = 'tmp_taskq_'+fileAggFunc
         df1.loc[df1['metrics_name'].str.contains('securiti-appliance-linker', regex=False), 'metrics'] = 'linkerq_'+fileAggFunc
 
     if(metricsName == 'infra_access_latency'):
@@ -52,7 +52,7 @@ def plotMetricsFacetForApplianceId(df, appliance_id, fromDt, toDt, ttl):
     dfp = dfp.reindex(pd.date_range(dfp.index[0], dfp.index[-1], freq='h')).fillna(0)
     dfp.reset_index(level=[])
     dfp = pd.melt(dfp, ignore_index = False)
-    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScanned", "cpu_used_avg", "cpu_used_max", "scanTime","downloadq_max", "taskq_max", "download_workers_count_max", "memory_used_max"]}, markers=True, title=ttl)
+    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScanned", "cpu_used_avg", "cpu_used_max", "scanTime", "taskq_max", "memory_used_max"]}, markers=True, title=ttl)
     fig = fig.update_yaxes(matches=None)
     return fig
 
