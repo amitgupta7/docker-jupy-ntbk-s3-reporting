@@ -16,7 +16,8 @@ Alternatively, s3 sync is not required to run the jupyter server. Use the `make 
 ```shell
 ## git clone https://github.com/amitgupta7/docker-jupy-ntbk-s3-reporting.git
 ## cd docker-jupy-ntbk-s3-reporting
-## Run jupyter server in background
+## Run jupyter server in background  http://127.0.0.1:8888/lab
+## Jupiter server password is set to 'my-password'
 make build run 2>/dev/null & 
 ## Authenticate and sync reports from s3 bucket
 make auth sync

@@ -6,3 +6,4 @@ my-venv/*
 __pycache__/*.pyc
 *.json
 appliancePlots/*.html
+.dataDir/*
