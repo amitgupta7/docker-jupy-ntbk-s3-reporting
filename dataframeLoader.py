@@ -89,9 +89,7 @@ def loadUnstrucDataFromFileRegex(root, regex):
     df9 = pd.melt(df9, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value')
     return df9
 
-def loadPrometheusDataFromFileRegex(root, filePrefix, fileExtn):
-    # metricsArr = ['cpu_used', 'download_workers_count', 'memory_used', 'task_queue_length', 'infra_access_latency', 'pod_cpu_usage', 'pod_memory_usage']    
-    metricsArr = ['cpu_used', 'memory_used', 'task_queue_length']
+def loadPrometheusDataFromFileRegex(root, filePrefix, metricsArr, fileExtn):
     df_arr = []
     for metricsName in metricsArr:
         for fileAggFunc in ['max', 'avg']:
