@@ -6,7 +6,7 @@ This is a docker container to run jupyter notebook for generating performance re
 * Linux Instructions: https://docs.docker.com/desktop/install/linux-install/
 ## Usage
 ```shell
-git clone git@bitbucket.org:securitiai/team-cx-tools.git
+git clone https://github.com/amitgupta7/docker-jupy-ntbk-s3-reporting.git
 cd team-cx-tools/docker-jupy-ntbk-s3-reporting
 make build run-with-full-s3-download
 ## follow the instructions on prompt to authenticate with aws sso and run the jupiter server on http://127.0.0.1:8888/lab
@@ -14,6 +14,8 @@ make build run-with-full-s3-download
 ```
 Alternatively, s3 sync is not required to run the jupyter server. Use the `make run` command to run the jupyter server without s3 sync. `s3-auth` and `s3-sync` targets may be used when the jupyter server container is running to re-sync with s3.
 ```shell
+## git clone https://github.com/amitgupta7/docker-jupy-ntbk-s3-reporting.git
+## cd docker-jupy-ntbk-s3-reporting
 ## Run jupyter server in background
 make build run 2>/dev/null & 
 ## Authenticate and sync reports from s3 bucket
