@@ -32,8 +32,8 @@ container-check: preflight
 		echo "Jupyter server container is NOT running. Aborting.";\
     fi
 auth: container-check
-	docker exec -it ${NAME}	mkdir -p ~/.aws
-	docker exec -it ${NAME}	cp config ~/.aws
+	mkdir -p .aws
+	cp config .aws
 	docker exec -it ${NAME}	aws sso login --no-browser
 stop: 
 	echo "Waiting for container ${NAME}..."

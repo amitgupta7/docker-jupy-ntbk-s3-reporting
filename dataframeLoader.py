@@ -46,7 +46,7 @@ def loadDataFrameFromFileRegex(root, regex, **kwargs):
     
 def plotMetricsFacetForApplianceId(df, appliance_id, fromDt, toDt, ttl):
     dfp = df[(df['appliance_id'] == appliance_id) & (df['ts'] >= fromDt) & (df['ts'] <= toDt) ]
-    dfp = dfp.pivot(index=['appliance_id','ts'], columns=['node_ip', 'metrics'], values='value').reset_index()
+    dfp = dfp.pivot_table(index=['appliance_id','ts'], columns=['node_ip', 'metrics'], values='value', aggfunc='max').reset_index()
     dfp = dfp.drop('appliance_id', axis=1, level=0)
     dfp = dfp.set_index(['ts'])
     dfp = dfp.reindex(pd.date_range(dfp.index[0], dfp.index[-1], freq='h')).fillna(0)
