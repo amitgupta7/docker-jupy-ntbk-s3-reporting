@@ -52,23 +52,41 @@ def plotMetricsFacetForApplianceId(df, appliance_id, fromDt, toDt, ttl):
     dfp = dfp.reindex(pd.date_range(dfp.index[0], dfp.index[-1], freq='h')).fillna(0)
     dfp.reset_index(level=[])
     dfp = pd.melt(dfp, ignore_index = False)
-    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScanned", "cpu_used_avg", "cpu_used_max", "scanTime", "taskq_max", "memory_used_max"]}, markers=True, title=ttl)
+    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScannedinGB", "numberOfColsScanned" ,"cpu_used_avg", "cpu_used_max", "scanTime", "taskq_max", "memory_used_max"]}, markers=False, title=ttl)
     fig = fig.update_yaxes(matches=None)
     return fig
 
+def loadStrucDataFromFileRegex(root, regex):
+    print("loading Strctured Data from file: "+regex)
+    df9 = loadDataFrameFromFileRegex(root, regex, metrics='strcutured_Scan')
+    df9.rename(columns={'pod':'appliance_id'}, inplace=True)
+    df9.rename(columns={'ds':'node_ip'}, inplace=True)
+    df9=df9.groupby(['appliance_id', 'ts', 'node_ip']).agg(\
+    numberOfTablesScanned=('numberOfTablesScanned', 'sum'), \
+    numberOfColsScanned=('numberOfColsScanned', 'sum'), \
+    uniqPodCount=('uniqPodCount', 'max'), \
+    scanTime=('processingTimeinHrs', 'sum'), \
+    IdleTimeInHrs=('IdleTimeInHrs', 'sum'), \
+    numberOfChunksScanned=('numberOfChunksScanned', 'max')).reset_index()
+    df9['ts']=pd.to_datetime(df9['ts'],unit='ms')
+    df9 = pd.melt(df9, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value')
+    return df9
+
+
 def loadUnstrucDataFromFileRegex(root, regex):
     print("loading Unstrctured Data from file: "+regex)
-    df9 = loadDataFrameFromFileRegex(root, regex, metrics='dataScanned')
+    df9 = loadDataFrameFromFileRegex(root, regex, metrics='unStrcutured_Scan')
     df9.rename(columns={'pod':'appliance_id'}, inplace=True)
-    df9['node_ip']="master"
+    df9.rename(columns={'ds':'node_ip'}, inplace=True)
     df9=df9.groupby(['appliance_id', 'ts', 'node_ip']).agg(\
-    dataScanned=('dataScannedInGB', 'sum'), \
+    dataScannedinGB=('dataScannedInGB', 'sum'), \
     scanTime=('processingTimeinHrs', 'sum'), \
+    IdleTimeInHrs=('IdleTimeInHrs', 'sum'), \
     numFilesScanned=('numberOfFilesScanned', 'sum'), \
     scannerIdleTime=('IdleTimeInHrs', 'sum'), \
     uniqPodCount=('uniqPodCount', 'max')).reset_index()
     df9['ts']=pd.to_datetime(df9['ts'],unit='ms')
-    df9['avgFileSizeInMB']=df9['dataScanned']*1000/df9['numFilesScanned']
+    df9['avgFileSizeInMB']=df9['dataScannedinGB']*1000/df9['numFilesScanned']
     df9 = pd.melt(df9, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value')
     return df9
 
