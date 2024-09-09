@@ -52,7 +52,7 @@ def plotMetricsFacetForApplianceId(df, appliance_id, fromDt, toDt, ttl):
     dfp = dfp.reindex(pd.date_range(dfp.index[0], dfp.index[-1], freq='h')).fillna(0)
     dfp.reset_index(level=[])
     dfp = pd.melt(dfp, ignore_index = False)
-    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScannedinGB", "numberOfColsScanned" ,"cpu_used_avg", "cpu_used_max", "scanTime", "taskq_max", "memory_used_max"]}, markers=False, title=ttl)
+    fig = px.line(dfp, x=dfp.index, y="value", color='node_ip', facet_row='metrics', height=6000, facet_row_spacing=0.005, category_orders={"metrics": ["dataScannedinGB", "numberOfColsScanned" ,"cpu_used_avg", "cpu_used_max", "scanTime", "uniqPodCount", "memory_used_max"]}, markers=False, title=ttl)
     fig = fig.update_yaxes(matches=None)
     return fig
 
@@ -62,7 +62,7 @@ def loadStrucDataFromFileRegex(root, regex):
     df9.rename(columns={'pod':'appliance_id'}, inplace=True)
     df9.rename(columns={'ds':'node_ip'}, inplace=True)
     df9=df9.groupby(['appliance_id', 'ts', 'node_ip']).agg(\
-    numberOfTablesScanned=('numberOfTablesScanned', 'sum'), \
+    numFilesScanned=('numberOfTablesScanned', 'sum'), \
     numberOfColsScanned=('numberOfColsScanned', 'sum'), \
     uniqPodCount=('uniqPodCount', 'max'), \
     scanTime=('processingTimeinHrs', 'sum'), \
@@ -83,7 +83,6 @@ def loadUnstrucDataFromFileRegex(root, regex):
     scanTime=('processingTimeinHrs', 'sum'), \
     IdleTimeInHrs=('IdleTimeInHrs', 'sum'), \
     numFilesScanned=('numberOfFilesScanned', 'sum'), \
-    scannerIdleTime=('IdleTimeInHrs', 'sum'), \
     uniqPodCount=('uniqPodCount', 'max')).reset_index()
     df9['ts']=pd.to_datetime(df9['ts'],unit='ms')
     df9['avgFileSizeInMB']=df9['dataScannedinGB']*1000/df9['numFilesScanned']
@@ -91,7 +90,8 @@ def loadUnstrucDataFromFileRegex(root, regex):
     return df9
 
 def loadPrometheusDataFromFileRegex(root, filePrefix, fileExtn):
-    metricsArr = ['cpu_used', 'download_workers_count', 'memory_used', 'task_queue_length', 'infra_access_latency', 'pod_cpu_usage', 'pod_memory_usage']
+    # metricsArr = ['cpu_used', 'download_workers_count', 'memory_used', 'task_queue_length', 'infra_access_latency', 'pod_cpu_usage', 'pod_memory_usage']    
+    metricsArr = ['cpu_used', 'memory_used', 'task_queue_length']
     df_arr = []
     for metricsName in metricsArr:
         for fileAggFunc in ['max', 'avg']:
