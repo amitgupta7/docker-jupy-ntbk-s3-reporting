@@ -5,7 +5,7 @@ VER=latest
 NAME=jupy-ntbk-s3
 datadir=.dataDir
 usage:
-	echo "USAGE: See "
+	echo "USAGE: "
 	echo "make build				Run docker image build"
 	echo "make run				Run jupyter server without any s3 sync."
 	echo "make auth				Authenticate aws cli with web sso."
@@ -14,7 +14,7 @@ usage:
 build: preflight
 	docker build -t ${IMG}:${VER} .
 run: preflight
-	docker run --name ${NAME} -p 8888:8888 --rm -v "${PWD}":/home/jovyan -it ${IMG}:${VER}
+	docker run ${MODE} --name ${NAME} -p 8888:8888 --rm -v "${PWD}":/home/jovyan -it ${IMG}:${VER}
 sync: container-check
 	echo "syncing with s3 with --size-only option, file creation date will be ignired."
 	docker exec -it ${NAME}	mkdir -p ${datadir}
