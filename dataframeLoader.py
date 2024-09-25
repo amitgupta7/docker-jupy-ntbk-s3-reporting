@@ -60,7 +60,9 @@ def loadStrucDataFromFileRegex(root, regex):
     print("loading Strctured Data from file: "+regex)
     df9 = loadDataFrameFromFileRegex(root, regex, metrics='strcutured_Scan')
     df9.rename(columns={'pod':'appliance_id'}, inplace=True)
-    df9.rename(columns={'ds':'node_ip'}, inplace=True)
+    cols = ['ds', 'dsid']
+    df9['node_ip'] = df9[cols].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
+    # df9.rename(columns={'ds':'node_ip'}, inplace=True)
     df9=df9.groupby(['appliance_id', 'ts', 'node_ip']).agg(\
     numFilesScanned=('numberOfTablesScanned', 'sum'), \
     numberOfColsScanned=('numberOfColsScanned', 'sum'), \
@@ -77,7 +79,9 @@ def loadUnstrucDataFromFileRegex(root, regex):
     print("loading Unstrctured Data from file: "+regex)
     df9 = loadDataFrameFromFileRegex(root, regex, metrics='unStrcutured_Scan')
     df9.rename(columns={'pod':'appliance_id'}, inplace=True)
-    df9.rename(columns={'ds':'node_ip'}, inplace=True)
+    cols = ['ds', 'dsid']
+    df9['node_ip'] = df9[cols].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
+    # df9.rename(columns={'ds':'node_ip'}, inplace=True)
     df9=df9.groupby(['appliance_id', 'ts', 'node_ip']).agg(\
     dataScannedinGB=('dataScannedInGB', 'sum'), \
     scanTime=('processingTimeinHrs', 'sum'), \
