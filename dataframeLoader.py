@@ -1,6 +1,7 @@
 ## Load Dataframe
 import pandas as pd
 import plotly.express as px
+from dateutil.parser import parse
 import datetime as dt
 import warnings
 import fnmatch
@@ -10,9 +11,10 @@ import os
 # dfl.loadDataFrameFromFileRegex('dataDir', 'securiti_appliance_cpu_used-max*.csv', metrics='cpu-max')
 pd.set_option('future.no_silent_downcasting', True)
 
-def loadPrometheusData(root, fileRegex, metricsName, fileAggFunc, fileExtn, aggfunction):
+def loadPrometheusData(root, fileRegex, metricsName, fileAggFunc, fileExtn, aggfunction, **kwargs):
+    daterange = kwargs.get('daterange', None)
     print("processing "+fileRegex+metricsName+'-'+fileAggFunc+'*'+fileExtn)
-    df1 = loadDataFrameFromFileRegex(root, fileRegex+metricsName+'-'+fileAggFunc+'*'+fileExtn, metrics=metricsName+'_'+fileAggFunc)
+    df1 = loadDataFrameFromFileRegex(root, fileRegex+metricsName+'-'+fileAggFunc+'*'+fileExtn, metrics=metricsName+'_'+fileAggFunc, daterange=daterange)
     if(metricsName == 'task_queue_length'):
         df1.loc[df1['metrics_name'].str.contains('securiti-appliance-downloader-tasks-queue', regex=False), 'metrics'] = 'taskq_'+fileAggFunc
         df1.loc[df1['metrics_name'].str.contains('t-appliance-downloader-tasks-queue', regex=False), 'metrics'] = 'tmp_taskq_'+fileAggFunc
@@ -30,20 +32,31 @@ def loadPrometheusData(root, fileRegex, metricsName, fileAggFunc, fileExtn, aggf
 
 def loadDataFrameFromFileRegex(root, regex, **kwargs):
     metrics = kwargs.get('metrics', None)
+    daterange = kwargs.get('daterange', None)
     df_arr = []
     for path, subdirs, files in os.walk(root):
         for name in files:
             if fnmatch.fnmatch(name, regex) and os.path.getsize(os.path.join(path, name)) > 0:
-                # print(os.path.join(path, name))
-                df = pd.read_csv(os.path.join(path, name))
-                df.insert(1, 'metrics', metrics)
-                df_arr.append(df)
+                if checkDateRangeFromFileName(daterange, name):
+                    # print(os.path.join(path, name))
+                    df = pd.read_csv(os.path.join(path, name))
+                    df.insert(1, 'metrics', metrics)
+                    df_arr.append(df)
     if not df_arr:
         warnings.warn("No matching file found in "+root+" for regex: "+regex+". Empty dataframe will be returned." )
         return pd.DataFrame()    
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=FutureWarning)      
         return pd.concat(df_arr, ignore_index=True)
+
+def checkDateRangeFromFileName(daterange, name):
+    if not daterange:
+        return True    
+    start_timestamp = parse(daterange[0],fuzzy=True)
+    end_timestamp = parse(daterange[1],fuzzy=True)
+    if start_timestamp <= parse(name,fuzzy=True) <= end_timestamp: 
+        return True
+    return False
     
 def plotMetricsFacetForApplianceId(dfp, ttl, cat_order):
     # dfp = fill_timeseries_zero_values(dfp)
@@ -73,7 +86,7 @@ def plotMetricsFacetForApplianceId(dfp, ttl, cat_order):
             thickness=0.01
             ),
             type="date", 
-            range=[dfp['ts'].max() - dt.timedelta(days=2), dfp['ts'].max()]
+            range=[dfp['ts'].min(), dfp['ts'].min() + dt.timedelta(days=1)]
             )
         )
     return fig
@@ -87,9 +100,10 @@ def fill_timeseries_zero_values(dfp):
     dfp = pd.melt(dfp, ignore_index = False)
     return dfp
 
-def loadStrucDataFromFileRegex(root, regex):
+def loadStrucDataFromFileRegex(root, regex, **kwargs):
+    daterange = kwargs.get('daterange', None)
     print("loading Strctured Data from file: "+regex)
-    df9 = loadDataFrameFromFileRegex(root, regex, metrics='strcutured_Scan')
+    df9 = loadDataFrameFromFileRegex(root, regex, metrics='strcutured_Scan', daterange=daterange)
     df9.rename(columns={'pod':'appliance_id'}, inplace=True)
     cols = ['ds', 'dsid']
     df9['node_ip'] = df9[cols].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
@@ -106,9 +120,10 @@ def loadStrucDataFromFileRegex(root, regex):
     return df9
 
 
-def loadUnstrucDataFromFileRegex(root, regex):
+def loadUnstrucDataFromFileRegex(root, regex, **kwargs):
+    daterange = kwargs.get('daterange', None)
     print("loading Unstrctured Data from file: "+regex)
-    df9 = loadDataFrameFromFileRegex(root, regex, metrics='unStrcutured_Scan')
+    df9 = loadDataFrameFromFileRegex(root, regex, metrics='unStrcutured_Scan', daterange=daterange)
     df9.rename(columns={'pod':'appliance_id'}, inplace=True)
     cols = ['ds', 'dsid']
     df9['node_ip'] = df9[cols].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
@@ -124,14 +139,15 @@ def loadUnstrucDataFromFileRegex(root, regex):
     df9 = pd.melt(df9, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value').drop_duplicates()
     return df9
 
-def loadPrometheusDataFromFileRegex(root, filePrefix, metricsArr, fileExtn):
+def loadPrometheusDataFromFileRegex(root, filePrefix, metricsArr, fileExtn, **kwargs):
+    daterange = kwargs.get('daterange', None)
     df_arr = []
     for metricsName in metricsArr:
         for fileAggFunc in ['max', 'avg']:
             aggfunction = 'mean'
             if(fileAggFunc == 'max'):
                 aggfunction = 'max'
-            df_tmp = loadPrometheusData(root, filePrefix, metricsName, fileAggFunc, fileExtn, aggfunction)
+            df_tmp = loadPrometheusData(root, filePrefix, metricsName, fileAggFunc, fileExtn, aggfunction, daterange=daterange)
             df_arr.append(df_tmp)
 
     df = pd.concat(df_arr, ignore_index=True)
