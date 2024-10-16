@@ -119,6 +119,25 @@ def loadStrucDataFromFileRegex(root, regex, **kwargs):
     df9 = pd.melt(df9, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value').drop_duplicates()
     return df9
 
+def loadConnectorDataFromFileRegex(root, regex, **kwargs):
+    daterange = kwargs.get('daterange', None)
+    print("loading Unstrctured Data from file: "+regex)
+    df7 = loadDataFrameFromFileRegex(root, 'STRUCTURED-*.csv', metrics='strcu', daterange=daterange)
+    df6 = loadDataFrameFromFileRegex(root, 'UNSTRUCTURED-*.csv', metrics='strcu', daterange=daterange)
+    df6 = df6[['pod', 'dsid', 'ds']].drop_duplicates()
+    df7 = df7[['pod', 'dsid', 'ds']].drop_duplicates()
+    df7 = pd.concat([df6, df7], ignore_index=True).drop_duplicates()
+    df8 = loadDataFrameFromFileRegex(root, 'SCANPROC-*.csv', metrics='scan_proc', daterange=daterange)
+    df8.rename(columns={'datasource_id':'dsid'}, inplace=True)
+    dfsp=pd.merge(df8, df7, on=['dsid', 'pod'], how='left')
+    cols = ['ds', 'dsid']
+    dfsp['node_ip'] = dfsp[cols].apply(lambda row: '_'.join(row.values.astype(str)), axis=1)
+    dfsp.rename(columns={'pod':'appliance_id'}, inplace=True)
+    dfsp = dfsp.groupby(['appliance_id', 'ts', 'node_ip']).agg(
+    fileDownloadTimeInHrs=('downloadTimeInHrs', 'sum')).reset_index()
+    dfsp['ts']=pd.to_datetime(dfsp['ts'],unit='ms')
+    dfsp = pd.melt(dfsp, id_vars=['appliance_id','ts', 'node_ip'], var_name='metrics', value_name='value').drop_duplicates()
+    return dfsp
 
 def loadUnstrucDataFromFileRegex(root, regex, **kwargs):
     daterange = kwargs.get('daterange', None)
