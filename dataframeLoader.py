@@ -76,19 +76,21 @@ def plotMetricsFacetForApplianceId(dfp, ttl, cat_order):
                  category_orders={"metrics": cat_order_overlap}, 
                  title=ttl
                  )
-    fig.update_yaxes(matches=None, 
-
-                    )
+    fig.update_yaxes(matches=None)
+    fig.update_traces(width=60*60*1000)
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
-    fig.update_layout(xaxis=dict(
-        rangeslider=dict(
-            visible=True,
-            thickness=0.01
-            ),
-            type="date", 
-            range=[dfp['ts'].min(), dfp['ts'].min() + dt.timedelta(days=1)]
+    fromdt = dfp['ts'].min().date()
+    todt=dfp['ts'].max().date()
+    if todt > fromdt:
+        fig.update_layout(xaxis=dict(
+            rangeslider=dict(
+                visible=True,
+                thickness=0.01
+                ),
+                type="date", 
+                range=[dfp['ts'].min(), dfp['ts'].min() + dt.timedelta(days=1)]
+                )
             )
-        )
     return fig
 
 def fill_timeseries_zero_values(dfp):
@@ -178,4 +180,6 @@ def loadApplianceTimeSeriesData(root, metricsArr, daterange):
     df = loadPrometheusDataFromFileRegex(root, 'securiti_appliance_', metricsArr, '.csv', daterange=daterange)
     dfus = loadUnstrucDataFromFileRegex(root, 'UNSTRUCTURED-*.csv', daterange=daterange)
     df = pd.concat([df, dfus, dfst, dfsp], ignore_index=True)
+    df['value'] = df.value.astype(float)
+    df = df[(df.value > 0)]
     return df
