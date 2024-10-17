@@ -60,8 +60,8 @@ def checkDateRangeFromFileName(daterange, name):
     
 def plotMetricsFacetForApplianceId(dfp, ttl, cat_order):
     # dfp = fill_timeseries_zero_values(dfp)
-    n_colors=50
-    colors = px.colors.sample_colorscale("RdBu", [n/(n_colors -1) for n in range(n_colors)])
+    dfp = dfp[(dfp['metrics'].isin(cat_order))].drop_duplicates()
+    cat_order_overlap = sorted(set(cat_order).intersection(dfp.metrics.unique()),key=lambda x:cat_order.index(x))
 
     fig = px.bar(dfp, 
                  x='ts', 
@@ -73,7 +73,7 @@ def plotMetricsFacetForApplianceId(dfp, ttl, cat_order):
                  facet_row_spacing=0.005, 
                  text_auto='.2s',
                  color_discrete_sequence=px.colors.qualitative.Alphabet, 
-                 category_orders=cat_order, 
+                 category_orders={"metrics": cat_order_overlap}, 
                  title=ttl
                  )
     fig.update_yaxes(matches=None, 
@@ -170,4 +170,12 @@ def loadPrometheusDataFromFileRegex(root, filePrefix, metricsArr, fileExtn, **kw
             df_arr.append(df_tmp)
 
     df = pd.concat(df_arr, ignore_index=True)
+    return df
+
+def loadApplianceTimeSeriesData(root, metricsArr, daterange):
+    dfsp = loadConnectorDataFromFileRegex(root, 'SCANPROC-*.csv', daterange=daterange)
+    dfst = loadStrucDataFromFileRegex(root, 'STRUCTURED-*.csv', daterange=daterange)
+    df = loadPrometheusDataFromFileRegex(root, 'securiti_appliance_', metricsArr, '.csv', daterange=daterange)
+    dfus = loadUnstrucDataFromFileRegex(root, 'UNSTRUCTURED-*.csv', daterange=daterange)
+    df = pd.concat([df, dfus, dfst, dfsp], ignore_index=True)
     return df
